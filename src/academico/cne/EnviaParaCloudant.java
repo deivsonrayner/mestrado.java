@@ -41,17 +41,17 @@ public class EnviaParaCloudant {
 		
 		BufferedWriter tWriter = new BufferedWriter(new FileWriter(outPut));
 
-		/**
+		
 		CloudantClient client = ClientBuilder.account("2ee1011a-ce7c-400b-93e0-9822e6b7c2e0-bluemix")
                 .username("2ee1011a-ce7c-400b-93e0-9822e6b7c2e0-bluemix")
                 .password("e0ddf884123cd2f492662c9cc3588b252c496d344767170abae1c6a19098d202")
                 .build();
-		*/
 		
-		CloudantClient client = ClientBuilder.url(new URL("http://159.89.235.38:5984"))
-                .username("admin")
-                .password("cnesfciunb")
-                .build();
+		
+		//CloudantClient client = ClientBuilder.url(new URL("http://159.89.235.38:5984"))
+        //        .username("admin")
+        //        .password("cnesfciunb")
+        //        .build();
 		
 		
 		
@@ -72,6 +72,8 @@ public class EnviaParaCloudant {
 				
 				for (int jIdx = 0; jIdx < json.length(); jIdx++) {
 					json.getJSONObject(jIdx).getJSONObject("properties").put("regiao", subDir.getName());
+					json.getJSONObject(jIdx).getJSONObject("properties").put("ibge", json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 7));
+					json.getJSONObject(jIdx).getJSONObject("properties").put("ibge6", json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 6));
 					json.getJSONObject(jIdx).put("_id", json.getJSONObject(jIdx).getJSONObject("properties").getString("setor"));
 				}
 				
