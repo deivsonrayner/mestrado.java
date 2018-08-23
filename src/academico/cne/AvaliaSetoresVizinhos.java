@@ -48,6 +48,7 @@ public class AvaliaSetoresVizinhos {
 		String id = null;
 		String ibge = null;
 		String ibge6= null;
+		String uf = null;
 		String setorObservado = null;
 		int indiceDistancia = 0;
 		double distancia = 0;
@@ -63,6 +64,7 @@ public class AvaliaSetoresVizinhos {
 	
 	public static class SetorArea {
 		String setor = null;
+		String uf = null;
 		double setorObsCentroLat = 0;
 		double setorObsCentroLng = 0;
 		double setorObsCentroMassLat = 0;
@@ -124,11 +126,11 @@ public class AvaliaSetoresVizinhos {
 			tWriterVizinhos = new BufferedWriter(new FileWriter(target+"-vizinhos.csv"));
 		
 		if (header) {
-			String line ="idx_processamento,id_relacionamento,setor_observado,setor_vizinho,idx_distancia,distancia_mts,distancia_mass_mts,ibge,ibge6,setor_viz_centro_lat,setor_viz_centro_lng,setor_viz_centromass_lat,setor_viz_centromass_lng";
+			String line ="idx_processamento,id_relacionamento,setor_observado,setor_vizinho,idx_distancia,distancia_mts,distancia_mass_mts,ibge,ibge6,setor_viz_centro_lat,setor_viz_centro_lng,setor_viz_centromass_lat,setor_viz_centromass_lng,uf";
 			tWriterVizinhos.write(line);
 			tWriterVizinhos.newLine();
 		} else {
-			String line = idx+","+relSetor.id+","+relSetor.setorObservado+","+relSetor.setorVizinho+","+relSetor.indiceDistancia+","+relSetor.distancia+","+relSetor.distanciaMass+","+relSetor.ibge+","+relSetor.ibge6+","+relSetor.setorVizCentroLat+","+relSetor.setorVizCentroLng+","+relSetor.setorVizCentroMassLat+","+relSetor.setorVizCentroMassLng;
+			String line = idx+","+relSetor.id+","+relSetor.setorObservado+","+relSetor.setorVizinho+","+relSetor.indiceDistancia+","+relSetor.distancia+","+relSetor.distanciaMass+","+relSetor.ibge+","+relSetor.ibge6+","+relSetor.setorVizCentroLat+","+relSetor.setorVizCentroLng+","+relSetor.setorVizCentroMassLat+","+relSetor.setorVizCentroMassLng+","+relSetor.uf;
 			tWriterVizinhos.write(line);
 			tWriterVizinhos.newLine();
 		}
@@ -140,11 +142,11 @@ public class AvaliaSetoresVizinhos {
 			tWriterArea = new BufferedWriter(new FileWriter(target+"-area.csv"));
 		
 		if (header) {
-			String line ="idx_processamento,setor,area_mts,ibge,ibge6,setor_centro_lat,setor_centro_lng,setor_centromass_lat,setor_centromass_lng";
+			String line ="idx_processamento,setor,area_mts,ibge,ibge6,setor_centro_lat,setor_centro_lng,setor_centromass_lat,setor_centromass_lng,uf";
 			tWriterArea.write(line);
 			tWriterArea.newLine();
 		} else {
-			String line = idx+","+relSetor.setor+","+relSetor.area+","+relSetor.ibge+","+relSetor.ibge6+","+relSetor.setorObsCentroLat+","+relSetor.setorObsCentroLng+","+relSetor.setorObsCentroMassLat+","+relSetor.setorObsCentroMassLng;
+			String line = idx+","+relSetor.setor+","+relSetor.area+","+relSetor.ibge+","+relSetor.ibge6+","+relSetor.setorObsCentroLat+","+relSetor.setorObsCentroLng+","+relSetor.setorObsCentroMassLat+","+relSetor.setorObsCentroMassLng+","+relSetor.uf;
 			tWriterArea.write(line);
 			tWriterArea.newLine();
 		}
@@ -170,7 +172,7 @@ public class AvaliaSetoresVizinhos {
 			writeAreaToCSV(null, target, true, -1);
 			writeRelationToCSV(null, target, true, null);
 			
-			for (int idx = 2190; idx < 35761; idx++) {
+			for (int idx = 30470; idx < 35760; idx++) {
 				
 				String url = cloudantLink + "/_all_docs?limit=1&include_docs=true&skip="+idx;
 				//String url = cloudantLink + "/_design/dd/_view/ibge?include_docs=true&key=231000"+
@@ -200,6 +202,7 @@ public class AvaliaSetoresVizinhos {
 						
 						SetorArea setorArea = new SetorArea();
 						setorArea.setor = setorObservado.getJSONObject("properties").getString("setor");
+						setorArea.uf    = setorObservado.getJSONObject("properties").getString("regiao");
 						setorArea.ibge  = setorObservado.getJSONObject("properties").getString("setor").substring(0,7);
 						setorArea.ibge6 = setorArea.ibge.substring(0,6);
 						setorArea.area  = GeoGeometry.area(converteCoordenadasToArray(coordenadas));
@@ -251,6 +254,7 @@ public class AvaliaSetoresVizinhos {
 									relSetor.setorVizinho = setorVizinho.getJSONObject("properties").getString("setor");
 									relSetor.ibge = setorObservado.getJSONObject("properties").getString("setor").substring(0, 7);
 									relSetor.ibge6= relSetor.ibge.substring(0,6);
+									relSetor.uf = setorObservado.getJSONObject("properties").getString("setor");
 									relSetor.setorVizCentroLat = centroPolViz[1];
 									relSetor.setorVizCentroLng = centroPolViz[0];
 									relSetor.setorVizCentroMassLat = centroPolVizMass[1];
