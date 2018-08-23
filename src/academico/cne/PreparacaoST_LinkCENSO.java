@@ -61,9 +61,9 @@ public class PreparacaoST_LinkCENSO {
 			String ibge = "NA";
 			String setor= "NA";
 			
-			if (Integer.parseInt(cneLine[0]) <= 291411) {
-				continue;
-			}
+			//if (Integer.parseInt(cneLine[0]) <= 291411) {
+			//	continue;
+			//}
 			
 			 
 			
@@ -94,7 +94,7 @@ public class PreparacaoST_LinkCENSO {
 						
 						if (geoObject.getJSONArray("rows").length() > 0) {
 							
-							ibge = geoObject.getJSONArray("rows").getJSONObject(0).getJSONObject("doc").getJSONObject("properties").getString("ibge");
+							ibge = geoObject.getJSONArray("rows").getJSONObject(0).getJSONObject("doc").getJSONObject("properties").getString("setor").substring(0,7);
 							setor = geoObject.getJSONArray("rows").getJSONObject(0).getJSONObject("doc").getJSONObject("properties").getString("setor");
 							
 							//System.out.println("Codigo IBGE: "+ibge);
@@ -115,7 +115,7 @@ public class PreparacaoST_LinkCENSO {
 				} else {
 					if (geoObject.getJSONArray("rows").length() > 0) {
 						
-						ibge = geoObject.getJSONArray("rows").getJSONObject(0).getJSONObject("doc").getJSONObject("properties").getString("ibge");
+						ibge = geoObject.getJSONArray("rows").getJSONObject(0).getJSONObject("doc").getJSONObject("properties").getString("setor").substring(0,7);
 						setor = geoObject.getJSONArray("rows").getJSONObject(0).getJSONObject("doc").getJSONObject("properties").getString("setor");
 						
 						//System.out.println("Codigo IBGE: "+ibge);
