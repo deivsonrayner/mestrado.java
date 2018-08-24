@@ -254,7 +254,7 @@ public class AvaliaSetoresVizinhos {
 									relSetor.setorVizinho = setorVizinho.getJSONObject("properties").getString("setor");
 									relSetor.ibge = setorObservado.getJSONObject("properties").getString("setor").substring(0, 7);
 									relSetor.ibge6= relSetor.ibge.substring(0,6);
-									relSetor.uf = setorObservado.getJSONObject("properties").getString("setor");
+									relSetor.uf = setorObservado.getJSONObject("properties").getString("regiao");
 									relSetor.setorVizCentroLat = centroPolViz[1];
 									relSetor.setorVizCentroLng = centroPolViz[0];
 									relSetor.setorVizCentroMassLat = centroPolVizMass[1];

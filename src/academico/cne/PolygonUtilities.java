@@ -2,11 +2,60 @@ package academico.cne;
 
 import java.awt.geom.Point2D;
 
+import org.json.JSONArray;
+
 /**
  * @author Christopher Fuhrman (christopher.fuhrman@gmail.com)
  * @version 2006-09-27
  */
 public class PolygonUtilities {
+	
+	public static String converteCoordenadas(JSONArray json) {
+		int coordSize = json.length();
+		String polygon = ""; 
+		for (int idx2 = 0; idx2 < coordSize; idx2++) {
+			if (polygon.isEmpty()) {
+				polygon = "POLYGON((";
+			} else {
+				polygon += ",";
+			}
+			JSONArray point = json.getJSONArray(idx2);
+			String lat = "" + point.getDouble(1);
+			String lng = "" + point.getDouble(0);
+			polygon += lat + "%20" + lng;
+		}
+		polygon += "))";
+		
+		return polygon;
+	}
+	
+	public static double[][] converteCoordenadasToArray(JSONArray json) {
+		int coordSize = json.length();
+		double[][] polygon = new double[coordSize][]; 
+		for (int idx = 0; idx < coordSize; idx++) {
+			
+			JSONArray point = json.getJSONArray(idx);
+			Double lat = point.getDouble(1);
+			Double lng = point.getDouble(0);
+			double[] item = new double[] {lng,lat};
+			polygon[idx] = item;
+		}
+		
+		return polygon;
+	}
+	
+	public static Point2D[] converteCoordenadasToPoint(JSONArray json) {
+		int coordSize = json.length();
+		Point2D[] points = new Point2D[coordSize];
+		for(int idx = 0; idx < coordSize; idx++) {
+			JSONArray point = json.getJSONArray(idx);
+			Double lat = point.getDouble(1);
+			Double lng = point.getDouble(0);
+			Point2D point2d = new Point2D.Double(lng,lat);
+			points[idx] = point2d;
+		}
+		return points;
+	}
 
 	/**
 	 * Function to calculate the area of a polygon, according to the algorithm

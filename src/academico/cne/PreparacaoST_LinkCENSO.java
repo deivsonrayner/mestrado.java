@@ -19,10 +19,10 @@ public class PreparacaoST_LinkCENSO {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		//point(-47.42729187011719%20-15.63626194364076)
-		String cnesLatLng = "D:\\Projects\\academico\\to-cloudant-cne\\CSV\\cnes-estabelecimentos_.csv";
-		String cloudantLink = "https://2ee1011a-ce7c-400b-93e0-9822e6b7c2e0-bluemix:e0ddf884123cd2f492662c9cc3588b252c496d344767170abae1c6a19098d202@2ee1011a-ce7c-400b-93e0-9822e6b7c2e0-bluemix.cloudant.com/censo-geo/_design/dd/_geo/newGeoIndex?relation=covered_by&g=";
-		String target = "D:\\Projects\\academico\\to-cloudant-cne\\CSV\\cnes-estabelecimentos_censo.csv";
-		String log = "D:\\Projects\\academico\\CNES-ST-CENSO_3.log";
+		String cnesLatLng = "C:\\projetos\\mestrado\\processamento\\estabelecimentos.rm.curitiba.csv";
+		String cloudantLink = "https://2ee1011a-ce7c-400b-93e0-9822e6b7c2e0-bluemix:e0ddf884123cd2f492662c9cc3588b252c496d344767170abae1c6a19098d202@2ee1011a-ce7c-400b-93e0-9822e6b7c2e0-bluemix.cloudant.com/censo-geo/_design/indices/_geo/geo?relation=covered_by&g=";
+		String target = "C:\\projetos\\mestrado\\processamento\\estabelecimentos.rm.curitiba-setor.csv";
+		String log = "C:\\projetos\\mestrado\\processamento\\estabelecimentos.rm.curitiba-setor.log";
 		String line = null;
 		String splitBy = ",";
 		Map<String, JSONObject> cache = new HashMap<String, JSONObject>();
@@ -69,12 +69,12 @@ public class PreparacaoST_LinkCENSO {
 			
 			if (!cneLine[1].equalsIgnoreCase("NA") && !lat.equalsIgnoreCase("NA") && !lat.equalsIgnoreCase("")) {
 				
-				geoObject = cache.get(cneLine[1]);
+				geoObject = cache.get(cneLine[0]);
 				
 				if (geoObject == null) {
 					String point = "point("+lng+"%20"+lat+")";
 					
-					System.out.println("ROW: "+cneLine[1]+" Pesquisando Ponto: "+ point);
+					System.out.println("ROW: "+cneLine[0]+" Pesquisando Ponto: "+ point);
 					//tLogWriter.write("ROW: "+cneLine[1]+" Pesquisando Ponto: "+ point);
 					//tLogWriter.newLine();
 					
