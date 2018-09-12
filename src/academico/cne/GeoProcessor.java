@@ -1,9 +1,11 @@
 package academico.cne;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,8 +42,14 @@ public static class RelacionamentoSetor {
 		double area = 0;
 	}
 	
+	public static class GeoObjeto {
+		String id = null;
+		double lng = 0;
+		double lat = 0;
+	}
+	
 	public static Map<String, Setor> setoresCache = new HashMap<String, Setor>();
-
+	public static Collection<GeoObjeto> geoObjetos = new ArrayList<GeoObjeto>();
 	public static Collection<RelacionamentoSetor> relacionamentos = new ArrayList<RelacionamentoSetor>();
 	
 	public static void carregarSetores(String dirOrigem) throws IOException {
@@ -61,6 +69,11 @@ public static class RelacionamentoSetor {
 				JSONArray json = new JSONArray(new String(content));
 				
 				for (int jIdx = 0; jIdx < json.length(); jIdx++) {
+					if (!getIBGEAmostra(Integer.parseInt(json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 6)))) {
+						System.out.println("FORA DA AMOSTRA -->  IBGE: "+json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 6));
+						continue;
+					}
+					
 					JSONArray coordenadas = json.getJSONObject(jIdx).getJSONObject("geometry").getJSONArray("coordinates").getJSONArray(0);
 					Setor setor = new Setor();
 					
@@ -85,6 +98,31 @@ public static class RelacionamentoSetor {
 			
 		}
 	}
+	
+	public static void carregarObjetos(String dirObjetos) throws IOException {
+			File file = new File(dirObjetos);
+			BufferedReader reader = new BufferedReader(new FileReader(file));
+			String line = null;
+			boolean firstLine = true;
+			while ((line = reader.readLine()) != null) {
+				if (firstLine) {
+					firstLine = !firstLine;
+					continue;
+				}
+				
+				String[] lineSplit = line.split(",");
+				if (lineSplit[1].equalsIgnoreCase("NA")) {
+					continue;
+				}
+				GeoObjeto geo = new GeoObjeto();
+				geo.id = lineSplit[0];
+				geo.lng = Double.parseDouble(lineSplit[1]);
+				geo.lat = Double.parseDouble(lineSplit[2]);
+				geoObjetos.add(geo);
+			}
+			
+		
+	}
 
 	public static void main(String[] args) throws IOException {
 		
@@ -93,9 +131,9 @@ public static class RelacionamentoSetor {
 		String dirOrigem     = "C:\\projetos\\mestrado\\dados\\geojson-setores\\amostra";
 		String outPut        = "C:\\projetos\\mestrado\\processamento\\censo";
 		String operacao      = "1";
-		String objeto        = "";
+		String objeto        = "C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\cnes-objeto-geo.csv";
 		
-		final double distanciaMax = 3600;
+		final double distanciaMax = 250;
 		final boolean gerarSetor  = true;
 		
 		GeoProcessor.carregarSetores(dirOrigem);
@@ -105,12 +143,18 @@ public static class RelacionamentoSetor {
 			gerarArquivos(outPut, gerarSetor);
 		}
 		
+		if (operacao.equalsIgnoreCase("2")) {
+			GeoProcessor.carregarObjetos(objeto);
+			executaVizinhaObjeto(distanciaMax);
+			gerarArquivos(outPut, gerarSetor);
+		}
+		
 	}
 	
 	public static void gerarArquivos(String outPut, boolean gerarSetor) throws IOException {
 		
-		BufferedWriter tWriterSetores  = new BufferedWriter(new FileWriter(outPut+"-setores"));
-		BufferedWriter tWriterVizinhos = new BufferedWriter(new FileWriter(outPut+"-relacionamentos"));
+		BufferedWriter tWriterSetores  = new BufferedWriter(new FileWriter(outPut+"-setores.csv"));
+		BufferedWriter tWriterVizinhos = new BufferedWriter(new FileWriter(outPut+"-relacionamentos.csv"));
 		
 		if (gerarSetor) {
 			
@@ -150,20 +194,78 @@ public static class RelacionamentoSetor {
 				continue;
 			}
 			
-			for (Setor setorVizinho : setoresCache.values()) {
+			int numVizinhos = 0;
+			double distanciaMaxLocal = distanciaMax;
+			Map<String, Double> processados = new HashMap<String,Double>();
+			
+			while (numVizinhos < 3) {
 				
-				if (setorObservado.id.equalsIgnoreCase(setorVizinho.id)) {
-					continue;
+				
+					
+				for (Setor setorVizinho : setoresCache.values()) {
+					
+					if (setorObservado.id.equalsIgnoreCase(setorVizinho.id)) {
+						continue;
+					}
+					
+					
+					double distance = GeoGeometry.distance(setorObservado.centroMassLat, setorObservado.centroMassLng,
+										 setorVizinho.centroMassLat, setorVizinho.centroMassLng);
+					
+					if (distance <= distanciaMaxLocal) {
+						
+						RelacionamentoSetor relacionamento = new RelacionamentoSetor();
+						relacionamento.id = setorObservado.id + "." + setorVizinho.id;
+						relacionamento.objetoObservado = setorObservado.id;
+						relacionamento.setorVizinho = setorVizinho.id;
+						relacionamento.distancia = distance;
+						
+						if (processados.containsKey(relacionamento.id)) {
+							continue;
+						}
+						
+						relacionamentos.add(relacionamento);
+						processados.put(relacionamento.id, relacionamento.distancia);
+						numVizinhos++;
+						//System.out.println("RELACIONAMENTO: "+relacionamento.id+ " DISTANCIA: "+relacionamento.distancia);
+					}
+						
 				}
 				
+				if (numVizinhos > 0)
+					System.out.println("SETOR: "+setorObservado.id+ " COM VIZINHOS: "+numVizinhos+" A DISTANCIA: "+distanciaMaxLocal);
+				
+				distanciaMaxLocal += 100;
+				
+			}
+			
+			
+			
+		}
+		
+	}
+	
+public static void executaVizinhaObjeto(double distanciaMax) {
+		
+		
+		for (Setor setorObservado : setoresCache.values()) {
+			
+			if (!getIBGEAmostra(Integer.parseInt(setorObservado.ibge6))) {
+				System.out.println("FORA DA AMOSTRA -->  IBGE: "+setorObservado.ibge6);
+				continue;
+			}
+			
+			for (GeoObjeto geo : geoObjetos) {
+				
+				
 				double distance = GeoGeometry.distance(setorObservado.centroMassLat, setorObservado.centroMassLng,
-									 setorVizinho.centroMassLat, setorVizinho.centroMassLng);
+									 geo.lat, geo.lng);
 				
 				if (distance <= distanciaMax) {
 					RelacionamentoSetor relacionamento = new RelacionamentoSetor();
-					relacionamento.id = setorObservado.id + "." + setorVizinho.id;
-					relacionamento.objetoObservado = setorObservado.id;
-					relacionamento.setorVizinho = setorVizinho.id;
+					relacionamento.id = geo.id + "." + setorObservado.id;
+					relacionamento.objetoObservado = geo.id;
+					relacionamento.setorVizinho = setorObservado.id;
 					relacionamento.distancia = distance;
 					relacionamentos.add(relacionamento);
 					System.out.println("RELACIONAMENTO: "+relacionamento.id+ " DISTANCIA: "+relacionamento.distancia);
