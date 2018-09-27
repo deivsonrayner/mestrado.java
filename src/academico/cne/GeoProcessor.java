@@ -29,6 +29,7 @@ public static class RelacionamentoSetor {
 		String objetoObservado = null;
 		double distancia = 0;
 		String setorVizinho = null;
+		String type = "RELACIONAMENTO";
 		
 	}
 
@@ -158,13 +159,20 @@ public static class RelacionamentoSetor {
 		long startTime = System.currentTimeMillis();
 		
 		String dirOrigem     = "C:\\projetos\\mestrado\\dados\\geojson-setores\\amostra";
-		String operacao      = "3";
+		String operacao      = "2";
 		String objeto        = "C:\\projetos\\mestrado\\dados\\final\\cnes-objeto-geo.csv";
 		
-		// INPUTS - OPERACAO 1 e 2
-		final double distanciaMax = 250;
-		final int numMinVizinhos  = 4;
-		final String regiao = "CE";
+		// INPUTS - OPERACAO 1 e 2 = DEFAULT
+		//final double distanciaMax = 250;
+		//final int numMinVizinhos  = 4;
+		//final String regiao = "CE";
+		//final int numMaxVizinhos = 10000;
+		
+		final double distanciaMax = 50;
+		final int numMinVizinhos  = 1;
+		String regiao = null;
+		final int numMaxVizinhos = 1;
+		int distanciaIncremental = 25;
 		
 		GeoProcessor.carregarSetores(dirOrigem, regiao);
 		
@@ -177,7 +185,7 @@ public static class RelacionamentoSetor {
 		if (operacao.equalsIgnoreCase("2")) {
 			String outPut        = "C:\\projetos\\mestrado\\processamento\\estabelecimentos";
 			GeoProcessor.carregarObjetos(objeto);
-			executaVizinhaObjeto(distanciaMax,numMinVizinhos);
+			executaVizinhaObjeto(distanciaMax,numMinVizinhos,numMaxVizinhos,distanciaIncremental);
 			gerarArquivos(outPut, false);
 		}
 		
@@ -186,10 +194,11 @@ public static class RelacionamentoSetor {
 		
 		
 		final int distanciaInicial = 500;
-		final int distanciaIncremental = 100;
+		distanciaIncremental = 100;
+		regiao = "PR";
 		
 		if (operacao.equalsIgnoreCase("3")) {
-			String outPut        = "C:\\projetos\\mestrado\\processamento\\setor-to-estabelecimento";
+			String outPut        = "C:\\projetos\\mestrado\\processamento\\setor-to-estabelecimento-gephi-"+regiao;
 			
 			System.out.println("[1] - CARREGAR ESTABELECIMENTOS"); 
 			Thread.sleep(2000);
@@ -262,6 +271,7 @@ public static void executarVizinhoEstabelecimentoToEstabelecimento(int distancia
 							relacionamento.objetoObservado = "ST."+estabelecimentoObservado.id;
 							relacionamento.setorVizinho = "ST."+estabelecimento.id;
 							relacionamento.distancia = distance;
+							relacionamento.type = "ESTABELECIMENTO-TO-ESTABELECIMENTO";
 							
 							if (!processados.containsKey(relacionamento.id)) {
 								relacionamentos.add(relacionamento);
@@ -326,6 +336,7 @@ public static void executarVizinhoEstabelecimento(int distanciaInicial, int dist
 							relacionamento.objetoObservado = "SETOR."+setor.id;
 							relacionamento.setorVizinho = "ST."+estabelecimento.id;
 							relacionamento.distancia = distance;
+							relacionamento.type = "SETOR-TO-ESTABELECIMENTO";
 							
 							if (!processados.containsKey(relacionamento.id)) {
 								relacionamentos.add(relacionamento);
@@ -409,13 +420,13 @@ public static void executarVizinhoEstabelecimento(int distanciaInicial, int dist
 		
 		BufferedWriter tWriterVizinhos = new BufferedWriter(new FileWriter(outPut+"-relacionamentos.csv"));
 		
-		String line = "id,Source,Target,distancia";
+		String line = "id,Source,Target,distancia,type";
 		tWriterVizinhos.write(line);
 		
 		
 		for (RelacionamentoSetor relacionamento : relacionamentos) {
 			tWriterVizinhos.newLine();
-			line = relacionamento.id+","+relacionamento.objetoObservado+","+relacionamento.setorVizinho+","+relacionamento.distancia;
+			line = relacionamento.id+","+relacionamento.objetoObservado+","+relacionamento.setorVizinho+","+relacionamento.distancia+","+relacionamento.type;
 			tWriterVizinhos.write(line);
 		}
 		tWriterVizinhos.flush();
@@ -516,7 +527,7 @@ public static void executarVizinhoEstabelecimento(int distanciaInicial, int dist
 		
 	}
 	
-public static void executaVizinhaObjeto(double distanciaMax, int numMinVizinhos) {
+public static void executaVizinhaObjeto(double distanciaMax, int numMinVizinhos, int numMaxVizinhos, int distanciaIncremental) {
 		
 		
 		for (GeoObjeto geo : geoObjetos) {
@@ -524,14 +535,21 @@ public static void executaVizinhaObjeto(double distanciaMax, int numMinVizinhos)
 			int numVizinhos = 0;
 			double distanciaMaxLocal = distanciaMax;
 			Map<String, Double> processados = new HashMap<String,Double>();
+			boolean numMax = false;
 			
-			while (numVizinhos < numMinVizinhos) {
+			while (numVizinhos < numMinVizinhos && !numMax) {
 				
 				for (Setor setorVizinho : setoresCache.values()) {
 					
 					if (!getIBGEAmostra(Integer.parseInt(setorVizinho.ibge6),null)) {
 						System.out.println("FORA DA AMOSTRA -->  IBGE: "+setorVizinho.ibge6);
 						continue;
+					}
+					
+					numMax = numVizinhos >= numMaxVizinhos;
+					
+					if (numMax) {
+						break;
 					}
 					
 					double distance = GeoGeometry.distance(geo.lat, geo.lng,
@@ -552,6 +570,7 @@ public static void executaVizinhaObjeto(double distanciaMax, int numMinVizinhos)
 						relacionamentos.add(relacionamento);
 						processados.put(relacionamento.id, relacionamento.distancia);
 						numVizinhos++;
+						
 						//System.out.println("RELACIONAMENTO: "+relacionamento.id+ " DISTANCIA: "+relacionamento.distancia);
 					} else {
 						//System.out.println("REJEITADO: "+ setorVizinho.id +" DISTANCIA: "+distance);
@@ -559,10 +578,14 @@ public static void executaVizinhaObjeto(double distanciaMax, int numMinVizinhos)
 						
 				}
 				
+				if (numMax)  {
+					System.out.println("SETOR: "+geo.id+ " NUM_MAX: "+numMax+" A DISTANCIA: "+distanciaMaxLocal);
+				}
+				
 				if (numVizinhos > 0)
 					System.out.println("SETOR: "+geo.id+ " COM VIZINHOS: "+numVizinhos+" A DISTANCIA: "+distanciaMaxLocal);
 				
-				distanciaMaxLocal += 100;
+				distanciaMaxLocal += distanciaIncremental;
 				if (distanciaMaxLocal > 3000) {
 					System.out.println("FINALIZANDO SETOR: "+geo.id+ " COM VIZINHOS: "+numVizinhos+" A DISTANCIA: "+distanciaMaxLocal);
 					break;
