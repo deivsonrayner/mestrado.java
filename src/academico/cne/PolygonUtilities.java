@@ -10,6 +10,8 @@ import org.json.JSONArray;
  */
 public class PolygonUtilities {
 	
+
+	
 	public static String converteCoordenadas(JSONArray json) {
 		int coordSize = json.length();
 		String polygon = ""; 
