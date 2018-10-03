@@ -20,20 +20,21 @@ public static Collection<RelacionamentoSetor> relacionamentos = new ArrayList<Re
 		long startTime = System.currentTimeMillis();
 		
 		String dirOrigem     = "C:\\projetos\\mestrado\\dados\\geojson-setores\\amostra";
-		String operacao      = "3";
+		String operacao      = "2";
 		String objeto        = "C:\\projetos\\mestrado\\dados\\final\\cnes-objeto-geo.csv";
 		
 		// INPUTS - OPERACAO 1 e 2 = DEFAULT
-		//final double distanciaMax = 250;
-		//final int numMinVizinhos  = 4;
-		//final String regiao = "CE";
-		//final int numMaxVizinhos = 10000;
+		final double distanciaMax = 250;
+		final int numMinVizinhos  = 4;
+		String regiao = "DF";
+		final int numMaxVizinhos = 10000;
+		int distanciaIncremental = 50;
 		
-		final double distanciaMax = 50;
-		final int numMinVizinhos  = 1;
-		String regiao = null;
-		final int numMaxVizinhos = 1;
-		int distanciaIncremental = 25;
+		//final double distanciaMax = 50;
+		//final int numMinVizinhos  = 1;
+		//String regiao = null;
+		//final int numMaxVizinhos = 1;
+		//int distanciaIncremental = 25;
 		
 		GeoProcessor.carregarSetores(dirOrigem, regiao);
 		
@@ -56,7 +57,7 @@ public static Collection<RelacionamentoSetor> relacionamentos = new ArrayList<Re
 		
 		final int distanciaInicial = 1500; // Distância que em geral uma pessoal percorreria com 30 minutos de caminhada.
 		distanciaIncremental = 100;
-		regiao = "CE";
+		regiao = "DF";
 		
 		if (operacao.equalsIgnoreCase("3")) {
 			String outPut        = "C:\\projetos\\mestrado\\processamento\\setor-to-estabelecimento-gephi-"+regiao;
