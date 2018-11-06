@@ -20,7 +20,7 @@ public static Collection<RelacionamentoSetor> relacionamentos = new ArrayList<Re
 		long startTime = System.currentTimeMillis();
 		
 		String dirOrigem     = "C:\\projetos\\mestrado\\dados\\geojson-setores\\amostra";
-		String operacao      = "2";
+		String operacao      = "1";
 		String objeto        = "C:\\projetos\\mestrado\\dados\\final\\cnes-objeto-geo.csv";
 		
 		// INPUTS - OPERACAO 1 e 2 = DEFAULT

@@ -35,8 +35,8 @@ public class PreparacaoST_Geolocalizacao {
 			ParserConfigurationException, InterruptedException, XPathExpressionException {
 
 		long start = System.currentTimeMillis();
-		String cne_principal = args[0];
-		String target = args[1];
+		String cne_principal = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-FILTRADO.csv";
+		String target = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-FILTRADO-ONLINE-GEO.csv";
 		String line = null;
 		String splitBy = ",";
 		int skip = 0;
