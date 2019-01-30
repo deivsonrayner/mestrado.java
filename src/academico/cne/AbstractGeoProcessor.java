@@ -1,9 +1,12 @@
 package academico.cne;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,6 +22,11 @@ public class AbstractGeoProcessor {
 	public static Map<String, Setor> setoresCache = new HashMap<String, Setor>();
 	public static Collection<GeoObjeto> geoObjetos = new ArrayList<GeoObjeto>();
 	public static Collection<Estabelecimento> estabelecimentos = new ArrayList<Estabelecimento>();
+	public static Collection<Servico> servicos = new ArrayList<Servico>();
+	public static Collection<Equipamento> equipamentos = new ArrayList<Equipamento>();
+	
+	
+
 
 	public static void carregarSetores(String dirOrigem, String regiao) throws IOException {
 		File dir = new File(dirOrigem);
@@ -37,28 +45,31 @@ public class AbstractGeoProcessor {
 				JSONArray json = new JSONArray(new String(content));
 				
 				for (int jIdx = 0; jIdx < json.length(); jIdx++) {
-					if (!getIBGEAmostra(Integer.parseInt(json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 6)),regiao)) {
-						System.out.println("FORA DA AMOSTRA -->  IBGE: "+json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 6));
-						continue;
+					//if (!getIBGEAmostra(Integer.parseInt(json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 6)),regiao)) {
+					//	System.out.println("FORA DA AMOSTRA -->  IBGE: "+json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 6));
+					//	continue;
+					//}
+					
+					if (subDir.getName().startsWith(regiao.toUpperCase()) || regiao.equalsIgnoreCase("ALL")) {
+						JSONArray coordenadas = json.getJSONObject(jIdx).getJSONObject("geometry").getJSONArray("coordinates").getJSONArray(0);
+						Setor setor = new Setor();
+						
+						double[] ponto = PolygonUtilities.centerOfMass(PolygonUtilities.converteCoordenadasToPoint(coordenadas));
+						setor.centroMassLng = ponto[0];
+						setor.centroMassLat = ponto[1];
+						
+						double area = GeoGeometry.area(PolygonUtilities.converteCoordenadasToArray(coordenadas));
+						setor.area = area;
+						
+						setor.regiao = subDir.getName();
+						setor.ibge = json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 7);
+						setor.ibge6 = json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 6);
+						setor.id =  json.getJSONObject(jIdx).getJSONObject("properties").getString("setor");
+						setor.coordenadas = PolygonUtilities.converteCoordenadasToPoint(coordenadas);
+						
+						setoresCache.put(setor.id, setor);
+						System.out.println("[SETOR] INSERTING SETOR: "+setor.id + " IBGE: "+setor.ibge6+ " REGIAO: "+setor.regiao);
 					}
-					
-					JSONArray coordenadas = json.getJSONObject(jIdx).getJSONObject("geometry").getJSONArray("coordinates").getJSONArray(0);
-					Setor setor = new Setor();
-					
-					double[] ponto = PolygonUtilities.centerOfMass(PolygonUtilities.converteCoordenadasToPoint(coordenadas));
-					setor.centroMassLng = ponto[0];
-					setor.centroMassLat = ponto[1];
-					
-					double area = GeoGeometry.area(PolygonUtilities.converteCoordenadasToArray(coordenadas));
-					setor.area = area;
-					
-					setor.regiao = subDir.getName();
-					setor.ibge = json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 7);
-					setor.ibge6 = json.getJSONObject(jIdx).getJSONObject("properties").getString("setor").substring(0, 6);
-					setor.id =  json.getJSONObject(jIdx).getJSONObject("properties").getString("setor");
-					
-					
-					setoresCache.put(setor.id, setor);
 					
 				}
 					
@@ -91,6 +102,226 @@ public class AbstractGeoProcessor {
 			
 		
 	}
+	
+	public static void carregarEquipamentos(String dirObjetos, String uf, String ibge, String[] codigos) throws NumberFormatException, IOException {
+		File file = new File(dirObjetos);
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		String line = null;
+		boolean firstLine = true;
+		while ((line = reader.readLine()) != null) {
+			if (firstLine) {
+				firstLine = !firstLine;
+				continue;
+			}
+			
+			String[] lineSplit = line.split(",");
+			if (lineSplit[1].equalsIgnoreCase("NA")) {
+				continue;
+			}
+			
+			if (uf != null) {
+				if (!lineSplit[29].equalsIgnoreCase(uf)) {
+					continue;
+				}
+			}
+			
+			if (ibge != null) {
+				if (!ibge.equalsIgnoreCase(lineSplit[2])) {
+					continue;
+				}
+			}
+			
+			Equipamento equipamento = new Equipamento();
+			equipamento.cnes = lineSplit[1];
+			equipamento.codigo = lineSplit[22];
+			equipamento.tipo = lineSplit[21];
+			equipamento.uf = lineSplit[29];
+			equipamento.indDispSUS = lineSplit[25].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[25]);
+			equipamento.intNDispSUS = lineSplit[26].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[26]);
+			equipamento.qtdEmUso = lineSplit[24].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[24]);
+			equipamento.qtdExistente = lineSplit[23].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[23]);
+
+			if (uf != null) {
+				if (!lineSplit[29].equalsIgnoreCase(uf)) {
+					//System.out.println("[IGNORING...] - CNES: "+ equipamento.cnes + " UF: "+ equipamento.uf + " CODIGO: "+equipamento.codigo);
+					continue;
+				}
+			}
+			
+			if (ibge != null) {
+				if (!ibge.equalsIgnoreCase(lineSplit[2])) {
+					//System.out.println("[IGNORING...] - CNES: "+ equipamento.cnes + " IBGE: "+ lineSplit[2] + " CODIGO: "+equipamento.codigo);
+					continue;
+				}
+			}
+			
+			for (String codigo : codigos) {
+				if (equipamento.codigo.equalsIgnoreCase(codigo)) {
+					equipamentos.add(equipamento);
+					System.out.println("[LOADING...] - CNES: "+ equipamento.cnes + " UF: "+ equipamento.uf + " CODIGO: "+equipamento.codigo);
+					continue;
+				}
+			}
+	
+			//System.out.println("[IGNORING...] - CNES: "+ equipamento.cnes + " UF: "+ equipamento.uf + " CODIGO: "+equipamento.codigo);
+			
+		}
+	}
+	
+	public static void carregarServicos(String dirObjetos, String uf, String ibge, String[] codigos) throws NumberFormatException, IOException {
+		File file = new File(dirObjetos);
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		String line = null;
+		boolean firstLine = true;
+		while ((line = reader.readLine()) != null) {
+			if (firstLine) {
+				firstLine = !firstLine;
+				continue;
+			}
+			
+			String[] lineSplit = line.split(",");
+			if (lineSplit[1].equalsIgnoreCase("NA")) {
+				continue;
+			}
+			
+
+			
+
+			
+			Servico servico = new Servico();
+			servico.cnes = lineSplit[1];
+			servico.codigo = lineSplit[3];
+			servico.classe = lineSplit[4];
+			servico.uf = lineSplit[33];
+			servico.ambNSUS = lineSplit[25].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[25]);
+			servico.ambSUS = lineSplit[26].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[26]);
+			servico.hospNSUS = lineSplit[27].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[27]);
+			servico.hospSUS = lineSplit[28].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[28]);
+			
+			if (uf != null) {
+				if (!lineSplit[33].equalsIgnoreCase(uf)) {
+					//System.out.println("[IGNORING...] - CNES: "+ servico.cnes + " UF: "+ servico.uf + " CODIGO: "+servico.codigo);
+					continue;
+				}
+			}
+			
+			if (ibge != null) {
+				if (!ibge.equalsIgnoreCase(lineSplit[2])) {
+					//System.out.println("[IGNORING...] - CNES: "+ servico.cnes + " IBGE: "+ lineSplit[2] + " CODIGO: "+servico.codigo);
+					continue;
+				}
+			}
+			
+			for (String codigo : codigos) {
+				if (servico.codigo.equalsIgnoreCase(codigo)) {
+					servicos.add(servico);
+					System.out.println("[LOADING...] - CNES: "+ servico.cnes + " UF: "+ servico.uf + " CODIGO: "+servico.codigo);
+					continue;
+				}
+			}
+	
+			//System.out.println("[IGNORING...] - CNES: "+ servico.cnes + " UF: "+ servico.uf + " CODIGO: "+servico.codigo);
+
+		}
+	}
+	
+	public static Collection<EstabelecimentoLocal> carregarEstabelecimentoLocalSimples(String dirObjetos) throws IOException {
+		File file = new File(dirObjetos);
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		String line = null;
+		boolean firstLine = true;
+		
+		ArrayList<EstabelecimentoLocal> locais = new ArrayList<EstabelecimentoLocal>();
+		
+		while ((line = reader.readLine()) != null) {
+			if (firstLine) {
+				firstLine = !firstLine;
+				continue;
+			}
+			
+			String[] lineSplit = line.split(",");
+			if (lineSplit[0].equalsIgnoreCase("NA")) {
+				continue;
+			}
+			
+			EstabelecimentoLocal estabelecimentoLocal = new EstabelecimentoLocal();
+			estabelecimentoLocal.id = lineSplit[0].replace( "\"", "");
+			estabelecimentoLocal.cnes = estabelecimentoLocal.id;
+			estabelecimentoLocal.ibge = lineSplit[1].replace( "\"", "");
+			estabelecimentoLocal.latitude  = Double.parseDouble(lineSplit[4].replace("\"", ""));
+			estabelecimentoLocal.longitude = Double.parseDouble(lineSplit[5].replace("\"", ""));
+			
+			locais.add(estabelecimentoLocal);
+		}
+		
+		return locais;
+		
+	}
+	
+	public static void carregarEstabelecimentosCNES(String dirObjetos, String uf, String ibge) throws IOException {
+		File file = new File(dirObjetos);
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		String line = null;
+		boolean firstLine = true;
+		while ((line = reader.readLine()) != null) {
+			if (firstLine) {
+				firstLine = !firstLine;
+				continue;
+			}
+			
+			String[] lineSplit = line.split(",");
+			if (lineSplit[1].equalsIgnoreCase("NA")) {
+				continue;
+			}
+			
+			if (uf != null) {
+				if (!uf.equalsIgnoreCase(lineSplit[202])) {
+					continue;
+				}
+			}
+			
+			if (ibge != null) {
+				if (!ibge.equalsIgnoreCase(lineSplit[2])) {
+					continue;
+				}
+			}
+			
+			Estabelecimento estabelecimento = new Estabelecimento();
+			estabelecimento.tipUnidade = lineSplit[20].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[20]);
+			estabelecimento.cnes = lineSplit[1];
+			estabelecimento.id = lineSplit[1];
+			estabelecimento.nivDependencia = lineSplit[6].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[6]);
+			estabelecimento.vincSus = lineSplit[13].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[13]);
+			estabelecimento.tpGestao = lineSplit[14];
+			estabelecimento.atividade = lineSplit[17].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[17]);
+			estabelecimento.clientel = lineSplit[19].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[19]);
+			estabelecimento.turnoAt = lineSplit[21].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[21]);
+			estabelecimento.atendAmbulatorial = lineSplit[88].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[88]);
+			estabelecimento.centroNeoNatal = lineSplit[113].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[113]);
+			estabelecimento.atendHospitalar = lineSplit[114].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[114]);
+			estabelecimento.urgEmergencia = lineSplit[71].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[71]);
+			estabelecimento.centroCirurgico = lineSplit[92].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[92]);
+			estabelecimento.centroObstetrico = lineSplit[97].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[97]);
+			estabelecimento.nivelAtendAmb = lineSplit[45].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[45]);
+			estabelecimento.nivelAtendHos = lineSplit[52].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[52]);
+			estabelecimento.atendPr = lineSplit[198].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[198]);
+			estabelecimento.longitude = lineSplit[211].equalsIgnoreCase("NA")?-1:Double.parseDouble(lineSplit[211]);
+			estabelecimento.latitude = lineSplit[212].equalsIgnoreCase("NA")?-1:Double.parseDouble(lineSplit[212]);
+			estabelecimento.ano = lineSplit[203].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[203]);
+			estabelecimento.uf = lineSplit[202];
+			//estabelecimento.totalEquipes = lineSplit[24].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[24]);
+			//estabelecimento.atencaoBasica = lineSplit[25].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[25]);
+			//estabelecimento.mediaComplexidade = lineSplit[27].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[27]);
+			//estabelecimento.altaComplexidade = lineSplit[28].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[28]);
+	
+			
+			
+			estabelecimentos.add(estabelecimento);
+			System.out.println("[LOADING...] - CNES: "+ estabelecimento.cnes + " UF: "+ estabelecimento.uf);
+		}
+		
+	
+}
 
 	public static void carregarEstabelecimentos(String dirObjetos) throws IOException {
 			File file = new File(dirObjetos);
@@ -107,6 +338,8 @@ public class AbstractGeoProcessor {
 				if (lineSplit[1].equalsIgnoreCase("NA")) {
 					continue;
 				}
+				
+				
 				Estabelecimento estabelecimento = new Estabelecimento();
 				estabelecimento.tipUnidade = lineSplit[0].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[0]);
 				estabelecimento.cnes = lineSplit[1];
@@ -134,6 +367,8 @@ public class AbstractGeoProcessor {
 				estabelecimento.mediaComplexidade = lineSplit[27].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[27]);
 				estabelecimento.altaComplexidade = lineSplit[28].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[28]);
 		
+				
+				
 				estabelecimentos.add(estabelecimento);
 			}
 			
@@ -149,25 +384,28 @@ public class AbstractGeoProcessor {
 					410020,410030,410040,410180,410230,410310,410400,410410,410420,410425,410520,410580,410620,410690,412863,410765,411125,411320,411430,411915,411910,411950,412080,412220,412120,412230,412550,412760,412788};
 		}
 		
-		if (regiao != null && regiao.equalsIgnoreCase("CE")) {
+		if (regiao != null && regiao.equalsIgnoreCase("CE_METRO")) {
 			amostra = new int[] {231000,230350,230370,230395,230440,230765,230770,230960,230970,231085,230428,230495,230523,230625,231240};
 		}
 		
-		if (regiao != null && regiao.equalsIgnoreCase("DF")) {
+		if (regiao != null && regiao.equalsIgnoreCase("DF_METRO")) {
 			//amostra = new int[] {310930,310945,317040,520010,520017,520025, 520030, 520400, 520549, 520551, 520580, 520620, 520800, 521250, 521305, 521523, 521560, 521730, 521760, 521975, 522185, 522220, 530010};
 			amostra = new int[] {530010};
 
 		}
 		
-		if (regiao != null && regiao.equalsIgnoreCase("PR")) {
+		if (regiao != null && regiao.equalsIgnoreCase("PR_METRO")) {
 			amostra = new int[] {410020,410030,410040,410180,410230,410310,410400,410410,410420,410425,410520,410580,410620,410690,412863,410765,411125,411320,411430,411915,411910,411950,412080,412220,412120,412230,412550,412760,412788};
 		}
-		 
-		for (int item : amostra) {
-			if (item == ibge) {
-				return true;
+		
+			for (int item : amostra) {
+				if (item == ibge) {
+					return true;
+				}
 			}
-		}
+		
+		 
+		
 	
 		return false;
 	}

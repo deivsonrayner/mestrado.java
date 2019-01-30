@@ -36,10 +36,12 @@ public class PreparacaoST_Geolocalizacao {
 
 		long start = System.currentTimeMillis();
 		String cne_principal = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-FILTRADO.csv";
+		//String cne_principal = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-12-17-everton.csv";
 		String target = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-FILTRADO-ONLINE-GEO.csv";
+		//String target = "C:\\projetos\\mestrado\\dados\\final\\CNES-MG-12-17-GEO-Everton-.csv";
 		String line = null;
 		String splitBy = ",";
-		int skip = 0;
+		int skip = 1002;
 		int stop = -1;
 
 		BufferedReader pReader = new BufferedReader(new FileReader(cne_principal));
@@ -74,7 +76,7 @@ public class PreparacaoST_Geolocalizacao {
 				break;
 			}
 
-			if (count % 500 == 0) {
+			if (count % 50 == 0) {
 				client = HttpClientBuilder.create().disableAuthCaching().disableCookieManagement()
 						.evictExpiredConnections().build();
 				System.out.println("*** RENEWING CONNECTION ----");

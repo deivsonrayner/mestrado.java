@@ -1,11 +1,11 @@
 package academico.cne;
 
-public class RelacionamentoSetor {
+public class Relacionamento {
 	
 	public String id = null;
-	public String objetoObservado = null;
+	public String source = null;
 	public double distancia = 0;
-	public String setorVizinho = null;
+	public String target = null;
 	public String type = "RELACIONAMENTO";
-	
+
 }
