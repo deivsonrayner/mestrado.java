@@ -11,4 +11,5 @@ public class Setor {
 	public String ibge6=null;
 	public double area = 0;
 	public Point2D[] coordenadas = null;
+	public String geoJson = null;
 }

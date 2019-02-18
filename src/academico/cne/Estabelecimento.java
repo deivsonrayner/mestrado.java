@@ -27,4 +27,5 @@ public class Estabelecimento {
 	public int atendPr = 0;
 	public int ano = 0;
 	public String uf = null;
+	public String descricao = null;
 }

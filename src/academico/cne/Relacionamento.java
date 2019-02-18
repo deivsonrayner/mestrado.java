@@ -7,5 +7,8 @@ public class Relacionamento {
 	public double distancia = 0;
 	public String target = null;
 	public String type = "RELACIONAMENTO";
+	public String subType = "";
+	public String classifier = "";
+	public String layer = "";
 
 }
