@@ -28,4 +28,5 @@ public class Estabelecimento {
 	public int ano = 0;
 	public String uf = null;
 	public String descricao = null;
+	public int servicos = 0;
 }

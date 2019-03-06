@@ -271,7 +271,7 @@ public class AbstractGeoProcessor {
 			}
 			
 			Servico servico = new Servico();
-			servico.cnes = lineSplit[1];
+			servico.cnes = (lineSplit[1].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[1]))+"";
 			servico.codigo = lineSplit[3];
 			servico.classe = lineSplit[4];
 			servico.uf = lineSplit[33];
@@ -307,7 +307,7 @@ public class AbstractGeoProcessor {
 			
 			if (processar) {		
 				for (String codigo : codigos) {
-					if (servico.codigo.equalsIgnoreCase(codigo)) {
+					if (servico.codigo.equalsIgnoreCase(codigo) || codigo.equalsIgnoreCase("ALL")) {
 						
 						if (!servicos.containsKey(servico.cnes)) {
 							servicos.put(servico.cnes, new ArrayList<Servico>());
@@ -501,9 +501,9 @@ public class AbstractGeoProcessor {
 				
 				
 				Estabelecimento estabelecimento = new Estabelecimento();
-				estabelecimento.tipUnidade = lineSplit[0].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[0]);
-				estabelecimento.cnes = lineSplit[1];
-				estabelecimento.id = lineSplit[1];
+				estabelecimento.tipUnidade = lineSplit[1].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[1]);
+				estabelecimento.cnes = lineSplit[0];
+				estabelecimento.id = lineSplit[0];
 				estabelecimento.nivDependencia = lineSplit[2].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[2]);
 				estabelecimento.vincSus = lineSplit[3].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[3]);
 				estabelecimento.tpGestao = lineSplit[4];
@@ -519,15 +519,16 @@ public class AbstractGeoProcessor {
 				estabelecimento.nivelAtendAmb = lineSplit[14].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[14]);
 				estabelecimento.nivelAtendHos = lineSplit[15].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[15]);
 				estabelecimento.atendPr = lineSplit[16].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[16]);
-				estabelecimento.longitude = lineSplit[21].equalsIgnoreCase("NA")?-1:Double.parseDouble(lineSplit[21]);
-				estabelecimento.latitude = lineSplit[22].equalsIgnoreCase("NA")?-1:Double.parseDouble(lineSplit[22]);
-				estabelecimento.ano = lineSplit[23].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[23]);
-				estabelecimento.totalEquipes = lineSplit[24].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[24]);
-				estabelecimento.atencaoBasica = lineSplit[25].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[25]);
-				estabelecimento.mediaComplexidade = lineSplit[27].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[27]);
-				estabelecimento.altaComplexidade = lineSplit[28].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[28]);
-				estabelecimento.descricao = lineSplit[26];
-				
+				estabelecimento.longitude = lineSplit[24].equalsIgnoreCase("NA")?-1:Double.parseDouble(lineSplit[24]);
+				estabelecimento.latitude = lineSplit[25].equalsIgnoreCase("NA")?-1:Double.parseDouble(lineSplit[25]);
+				estabelecimento.ano = lineSplit[27].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[27]);
+				estabelecimento.totalEquipes = lineSplit[28].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[28]);
+				estabelecimento.atencaoBasica = lineSplit[29].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[29]);
+				estabelecimento.mediaComplexidade = lineSplit[31].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[31]);
+				estabelecimento.altaComplexidade = lineSplit[32].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[32]);
+				estabelecimento.descricao = lineSplit[30];
+				estabelecimento.servicos = lineSplit[35].equalsIgnoreCase("NA")?0:Integer.parseInt(lineSplit[35]);
+				estabelecimento.uf = lineSplit[20];
 				
 				estabelecimentosRetorno.add(estabelecimento);
 			}
