@@ -38,7 +38,7 @@ public class Servico {
 			}
 			String[] csvLine = line.split(",");
 			
-			tipoClasse.put(csvLine[0]+"."+csvLine[1], csvLine[2]);
+			tipoClasse.put(csvLine[1]+"."+csvLine[0], csvLine[2]);
 		}
 		
 	}

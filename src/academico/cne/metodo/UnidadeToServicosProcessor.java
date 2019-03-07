@@ -47,18 +47,38 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 		tWriterVizinhos.close();
 	}
 	
-	public static void gerarSetoresAsGephiNodes(String outPut, HashMap<String,Setor> setores) throws IOException {
+	public static void gerarSetoresAsGephiNodes(String outPut, Map<String,Setor> setores) throws IOException {
 		
 		
-		BufferedWriter tWriterVizinhos = new BufferedWriter(new FileWriter(outPut+"-setores.csv"));
+		BufferedWriter tWriterVizinhos = new BufferedWriter(new FileWriter(outPut));
 		
-		String line = "id,ibge,regiao,latitude,longitude";
+		String line = "id,ibge,regiao,latitude,longitude,tipo";
 		tWriterVizinhos.write(line);
 		
 		
 		for (Setor setor : setores.values()) {
 			tWriterVizinhos.newLine();
 			line = setor.id+","+setor.ibge+","+setor.regiao+","+setor.centroMassLat+","+setor.centroMassLng+","+"SETOR-CENSITARIO";
+			tWriterVizinhos.write(line);
+		}
+		tWriterVizinhos.flush();
+		tWriterVizinhos.close();
+	}
+	
+	public static void gerarUnidadesGephiNodes(String outPut, Collection<Estabelecimento> estabelecimentos) throws IOException {
+		
+		
+		BufferedWriter tWriterVizinhos = new BufferedWriter(new FileWriter(outPut));
+		
+		String line = "id,tipoUnidade,atendAmbulatorial,centroNeoNatal,atendHospitalar,urgEmergencia,centroCirurgico,centroObstetrico,nivelAtendAmb,nivelAtendHos,atencaoBasica,mediaComplexidade,altaComplexidade,servicos,latitude,longitude,tipo";
+		tWriterVizinhos.write(line);
+		
+		
+		for (Estabelecimento estabelecimento : estabelecimentos) {
+			tWriterVizinhos.newLine();
+			line = estabelecimento.cnes+","+estabelecimento.descricao+","+estabelecimento.atendAmbulatorial+","+estabelecimento.centroNeoNatal+","+estabelecimento.atendHospitalar+","+estabelecimento.urgEmergencia + "," +
+				   estabelecimento.centroCirurgico + "," + estabelecimento.centroObstetrico + "," + estabelecimento.nivelAtendAmb + "," + estabelecimento.nivelAtendHos + "," + estabelecimento.atencaoBasica + "," + estabelecimento.mediaComplexidade + "," + estabelecimento.altaComplexidade + "," +
+				   estabelecimento.servicos + "," + estabelecimento.latitude + "," + estabelecimento.longitude + "," + "ESTABELECIMENTO";
 			tWriterVizinhos.write(line);
 		}
 		tWriterVizinhos.flush();
@@ -150,7 +170,7 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 						e1.printStackTrace();
 					}
 					try {
-						UnidadeToServicosProcessor.gerarArquivostoGephi("C:\\projetos\\mestrado\\dados\\final\\metodo-relacionamentos_PARTICAO_"+finalParticao, relacionamentos);
+						UnidadeToServicosProcessor.gerarArquivostoGephi("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede.particoes\\relacionamentos_PARTICAO_"+finalParticao, relacionamentos);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -161,6 +181,11 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 			
 			t.start();
 		}
+		
+		gerarSetoresAsGephiNodes("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede\\setores.csv", setores);
+		gerarUnidadesGephiNodes("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede\\unidades.csv", estabelecimentos);
+		
+		
 		
 	}
 	
@@ -282,7 +307,7 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 								}
 								
 								relacionamento.layer = layer;
-								relacionamento.id = setor.id+"-"+estabelecimento.id+"-"+servicoOferecido.codigo+"-"+relacionamento.classifier;
+								relacionamento.id = setor.id+"-"+estabelecimento.id+"-"+servicoOferecido.codigo+"-"+servicoOferecido.classe;
 								relacionamentos.put(relacionamento.id,relacionamento);
 								
 								traceAccepting("[ACEITANDO - PART:"+particao+"] SETOR: " + setor.id
@@ -307,7 +332,7 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 				
 			}
 			count++;
-			System.out.println("[EVOLUCAO PART:"+particao+"] - "+interacoes+" / "+count + "RELACIONAMENTOS: " + relacionamentos.size());
+			System.out.println("[EVOLUCAO PART:"+particao+"] - "+interacoes+" / "+count + " RELACIONAMENTOS: " + relacionamentos.size());
 				
 		}
 		return relacionamentos;
