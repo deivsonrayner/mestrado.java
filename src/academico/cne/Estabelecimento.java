@@ -29,4 +29,5 @@ public class Estabelecimento {
 	public String uf = null;
 	public String descricao = null;
 	public int servicos = 0;
+	public String municipio = null;
 }

@@ -41,7 +41,7 @@ public class PreparacaoST_Geolocalizacao {
 		//String target = "C:\\projetos\\mestrado\\dados\\final\\CNES-MG-12-17-GEO-Everton-.csv";
 		String line = null;
 		String splitBy = ",";
-		int skip = 1002;
+		int skip = 0;
 		int stop = -1;
 
 		BufferedReader pReader = new BufferedReader(new FileReader(cne_principal));
@@ -219,6 +219,11 @@ public class PreparacaoST_Geolocalizacao {
 
 	private static HttpResponse pesquisarDatasus(HttpClient client, String cnes)
 			throws UnsupportedEncodingException, InterruptedException, IOException, ClientProtocolException {
+		
+		while (cnes.length() < 7) {
+			cnes = "0"+cnes;
+		}
+		
 		String datasusServiceRequest = "<soap:Envelope " + "xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\" "
 				+ "xmlns:est=\"http://servicos.saude.gov.br/cnes/v1r0/estabelecimentosaudeservice\" "
 				+ "xmlns:fil=\"http://servicos.saude.gov.br/wsdl/mensageria/v1r0/filtropesquisaestabelecimentosaude\" "

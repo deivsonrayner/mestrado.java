@@ -501,26 +501,26 @@ public class AbstractGeoProcessor {
 				
 				
 				Estabelecimento estabelecimento = new Estabelecimento();
-				estabelecimento.tipUnidade = lineSplit[1].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[1]);
-				estabelecimento.cnes = lineSplit[0];
-				estabelecimento.id = lineSplit[0];
-				estabelecimento.nivDependencia = lineSplit[2].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[2]);
-				estabelecimento.vincSus = lineSplit[3].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[3]);
-				estabelecimento.tpGestao = lineSplit[4];
-				estabelecimento.atividade = lineSplit[5].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[5]);
-				estabelecimento.clientel = lineSplit[6].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[6]);
-				estabelecimento.turnoAt = lineSplit[7].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[7]);
-				estabelecimento.atendAmbulatorial = lineSplit[8].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[8]);
-				estabelecimento.centroNeoNatal = lineSplit[9].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[9]);
-				estabelecimento.atendHospitalar = lineSplit[10].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[10]);
-				estabelecimento.urgEmergencia = lineSplit[11].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[11]);
-				estabelecimento.centroCirurgico = lineSplit[12].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[12]);
-				estabelecimento.centroObstetrico = lineSplit[13].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[13]);
-				estabelecimento.nivelAtendAmb = lineSplit[14].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[14]);
-				estabelecimento.nivelAtendHos = lineSplit[15].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[15]);
-				estabelecimento.atendPr = lineSplit[16].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[16]);
-				estabelecimento.longitude = lineSplit[24].equalsIgnoreCase("NA")?-1:Double.parseDouble(lineSplit[24]);
-				estabelecimento.latitude = lineSplit[25].equalsIgnoreCase("NA")?-1:Double.parseDouble(lineSplit[25]);
+				estabelecimento.tipUnidade = lineSplit[2].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[2]);
+				estabelecimento.cnes = lineSplit[1];
+				estabelecimento.id = lineSplit[1];
+				estabelecimento.nivDependencia = lineSplit[3].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[3]);
+				estabelecimento.vincSus = lineSplit[4].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[3]);
+				estabelecimento.tpGestao = lineSplit[5];
+				estabelecimento.atividade = lineSplit[6].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[6]);
+				estabelecimento.clientel = lineSplit[7].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[7]);
+				estabelecimento.turnoAt = lineSplit[8].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[8]);
+				estabelecimento.atendAmbulatorial = lineSplit[9].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[9]);
+				estabelecimento.centroNeoNatal = lineSplit[10].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[10]);
+				estabelecimento.atendHospitalar = lineSplit[11].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[11]);
+				estabelecimento.urgEmergencia = lineSplit[12].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[12]);
+				estabelecimento.centroCirurgico = lineSplit[13].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[13]);
+				estabelecimento.centroObstetrico = lineSplit[14].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[14]);
+				estabelecimento.nivelAtendAmb = lineSplit[15].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[15]);
+				estabelecimento.nivelAtendHos = lineSplit[16].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[16]);
+				estabelecimento.atendPr = lineSplit[17].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[17]);
+				estabelecimento.longitude = lineSplit[25].equalsIgnoreCase("NA")?-1:Double.parseDouble(lineSplit[25]);
+				estabelecimento.latitude = lineSplit[26].equalsIgnoreCase("NA")?-1:Double.parseDouble(lineSplit[26]);
 				estabelecimento.ano = lineSplit[27].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[27]);
 				estabelecimento.totalEquipes = lineSplit[28].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[28]);
 				estabelecimento.atencaoBasica = lineSplit[29].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[29]);
@@ -529,6 +529,7 @@ public class AbstractGeoProcessor {
 				estabelecimento.descricao = lineSplit[30];
 				estabelecimento.servicos = lineSplit[35].equalsIgnoreCase("NA")?0:Integer.parseInt(lineSplit[35]);
 				estabelecimento.uf = lineSplit[20];
+				estabelecimento.municipio = lineSplit[36];
 				
 				estabelecimentosRetorno.add(estabelecimento);
 			}

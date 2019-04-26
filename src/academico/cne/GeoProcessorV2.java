@@ -52,11 +52,12 @@ public class GeoProcessorV2 extends AbstractGeoProcessor {
 		tWriterVizinhos.close();
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		// TODO Auto-generated method stub
 		
 		String censoGeoShapeDir = "C:\\projetos\\mestrado\\dados\\geojson-setores\\all";
-		String cnesGeoFile = "C:\\projetos\\mestrado\\dados\\cnes\\geo\\20180612.csv";
+		//String cnesGeoFile = "C:\\projetos\\mestrado\\dados\\cnes\\geo\\20180612.csv";
+		String cnesGeoFile = "C:\\projetos\\mestrado\\dados\\cnes\\geo\\cnes-geo-selecao.csv";
 		
 		
 		String inputRegiao = "ALL";
@@ -68,8 +69,10 @@ public class GeoProcessorV2 extends AbstractGeoProcessor {
 		Collection<EstabelecimentoLocal> estabelecimentos = AbstractGeoProcessor.carregarEstabelecimentoLocalSimples(cnesGeoFile);
 		AbstractGeoProcessor.carregarSetores(censoGeoShapeDir, inputRegiao);
 		
-		Collection<Collection<EstabelecimentoLocal>> particoes = particionar(estabelecimentos, 15000); 
+		Collection<Collection<EstabelecimentoLocal>> particoes = particionar(estabelecimentos, 30000000); 
 		int particaoIdx = 0;
+		System.out.println("INICIANDO UM TOTAL DE "+particoes.size() + " PARTICOES");
+		Thread.currentThread().sleep(3000);
 		
 		for (Collection<EstabelecimentoLocal> particao : particoes) {
 			final int finalParticao = particaoIdx++;
@@ -79,9 +82,11 @@ public class GeoProcessorV2 extends AbstractGeoProcessor {
 				@Override
 				public void run() {
 					
-					HashMap<String,Relacionamento> relacionamentos = GeoProcessorV2.processarRelacionamentosInsideness(particao, finalParticao);
+					//HashMap<String,Relacionamento> relacionamentos = GeoProcessorV2.processarRelacionamentosInsideness(particao, finalParticao);
+					HashMap<String,Relacionamento> relacionamentos = GeoProcessorV2.processarRelacionamentosMenorDistTolerancia(particao, 300, 0.2, finalParticao);
 					try {
-						GeoProcessorV2.gerarArquivostoGephi("C:\\projetos\\mestrado\\dados\\final\\pmaq\\"+inputRegiao+"link-insideness-v1-"+finalParticao, relacionamentos);
+						//GeoProcessorV2.gerarArquivostoGephi("C:\\projetos\\mestrado\\dados\\final\\pmaq\\"+inputRegiao+"link-insideness-v1-"+finalParticao, relacionamentos);
+						GeoProcessorV2.gerarArquivostoGephi("C:\\projetos\\mestrado\\dados\\final\\pmaq\\"+inputRegiao+"link-menordistancia-v1-"+finalParticao, relacionamentos);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -194,7 +199,11 @@ public class GeoProcessorV2 extends AbstractGeoProcessor {
 	 * @param tipoDistancia (1 - Vizinhos dentro de um Raio / 2 - O mais próximo centro de massa / 3 - Insideness)
 	 */
 	
-	public static void processarRelacionamentosMenorDistTolerancia(Collection<EstabelecimentoLocal> estabelecimentos, int distanciaInicial, int PercToleranciaDist) {
+	public static HashMap<String,Relacionamento> processarRelacionamentosMenorDistTolerancia(Collection<EstabelecimentoLocal> estabelecimentos, int distanciaInicial, double percToleranciaDist, int particao) {
+		
+		HashMap<String,Relacionamento> relacionamentos = new HashMap<String, Relacionamento>();
+		int count = 1;
+		int total = setoresCache.values().size();
 		
 		for (Setor setor : setoresCache.values()) {
 						
@@ -202,8 +211,10 @@ public class GeoProcessorV2 extends AbstractGeoProcessor {
 			int numVizinhos = 0;
 			double raioPesquisa = distanciaInicial;
 			
+			boolean continuar = true;
+			boolean aumentouRaio = false;
 			
-			while (numVizinhos < 1) {	
+			while (continuar) {	
 				
 				
 				for (EstabelecimentoLocal estabelecimento : estabelecimentos) {
@@ -215,7 +226,9 @@ public class GeoProcessorV2 extends AbstractGeoProcessor {
 					match = distance < raioPesquisa;
 					menorDistancia = Math.min(distance, menorDistancia);
 					
-					
+					if (aumentouRaio) {
+						continuar = false;
+					}
 					
 					
 					if (match) {
@@ -231,28 +244,26 @@ public class GeoProcessorV2 extends AbstractGeoProcessor {
 						
 						relacionamentos.put(relacionamento.id,relacionamento);
 						
-						System.out.println("[ACEITANDO] SETOR: " + setor.id
-								+ " RELACIONADO COM: " + estabelecimento.id + " DISTANCIA: " + distance);
+						System.out.println("[PARTICAO:"+particao+" ACEITANDO] SETOR: " + setor.id
+								+ " RELACIONADO COM: " + estabelecimento.id + " DISTANCIA: " + distance+ " RAIO: "+raioPesquisa);
 						
 					} else {
-						System.out.println("[IGNORANDO] SETOR: " + setor.id
-								+ " RELACIONADO COM: " + estabelecimento.id + " DISTANCIA: " + distance);
+						//System.out.println("[PARTICAO:"+particao+"IGNORANDO] SETOR: " + setor.id
+								//+ " RELACIONADO COM: " + estabelecimento.id + " DISTANCIA: " + distance);
 					}
 					
 					
 				}
-				
-				if (numVizinhos > 0)
-					System.out.println("[FIM] SETOR: " + setor.id + " RELACIONADO COM: "
-							+ numVizinhos);
-				
 
-				raioPesquisa = (int)(menorDistancia + (menorDistancia * 0.20));
+				raioPesquisa = (int)(menorDistancia + (menorDistancia * percToleranciaDist));
+				aumentouRaio = true;
 				
 			}
 				
-			
+			System.out.println("     ["+total+" / "+ count++ +"]");
 		}
+		
+		return relacionamentos;
 		
 	}
 	

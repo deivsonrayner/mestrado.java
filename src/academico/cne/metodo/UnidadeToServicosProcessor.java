@@ -1,5 +1,6 @@
 package academico.cne.metodo;
 
+import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -58,8 +59,39 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 		
 		for (Setor setor : setores.values()) {
 			tWriterVizinhos.newLine();
-			line = setor.id+","+setor.ibge+","+setor.regiao+","+setor.centroMassLat+","+setor.centroMassLng+","+"SETOR-CENSITARIO";
+			line = setor.id+","+setor.ibge6+","+setor.regiao+","+setor.centroMassLat+","+setor.centroMassLng+","+"SETOR-CENSITARIO";
 			tWriterVizinhos.write(line);
+		}
+		tWriterVizinhos.flush();
+		tWriterVizinhos.close();
+	}
+	
+	public static void gerarSetoresAsGeoMatriz(String outPut, Map<String,Setor> setores, boolean geoJSON) throws IOException {
+		
+		
+		BufferedWriter tWriterVizinhos = new BufferedWriter(new FileWriter(outPut));
+		
+		String line = "id,ibge,regiao,latitude,longitude,tipo,municipio,camada";
+		if (geoJSON) {
+			line = "id,ibge,regiao,geometry,tipo,municipio,camada";
+		}
+		
+		
+		tWriterVizinhos.write(line);
+		
+		
+		for (Setor setor : setores.values()) {
+			
+			for (Point2D point : setor.coordenadas) {
+				tWriterVizinhos.newLine();
+				if (geoJSON) {
+					line = setor.id+","+setor.ibge6+","+setor.regiao+","+setor.geoJson+","+"SETOR-CENSITARIO"+","+setor.getMunicipio()+","+setor.camada;
+				} else {
+					line = setor.id+","+setor.ibge6+","+setor.regiao+","+point.getY()+","+point.getX()+","+"SETOR-CENSITARIO"+","+setor.getMunicipio()+","+setor.camada;
+				}
+				tWriterVizinhos.write(line);	
+			}
+			
 		}
 		tWriterVizinhos.flush();
 		tWriterVizinhos.close();
@@ -117,12 +149,12 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 		String cnesGeoFile = "C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\cnes.resultado-filtro-unidades-servicos.csv";
 		String cnesServicosFile = "C:\\projetos\\mestrado\\dados\\cnes-processado\\CNES-SR-12-18-METODO.csv";
 		
-		String[] ibges = new String[] {"310930","310945","317040","310450","520010","520017",
-				                       "520025","520030","520400","520549","520551","520580",
-				                       "520620","520800","521250","521305","521523","521560", 
-				                       "521730","521760","521975","522185","522220","530010",
-				                       "520060","520080","520320","520530","520790","520860", 
-				                       "521460","522000","522068","522230"};
+		String[] ibges = new String[] {"310930","310945","317040","314700", "520010","520017","520025", "520030", "520400", "520549", "520551", "520580", "520620", "520800", "521250", "521305", "521523", "521560", "521730", "521760", 
+                "521975", "522185", "522220", "530010", "520790", "522000", "522230", "522060", "520110", "522200", "521530", "521010"};
+		
+		String[] ibgeRede = new String[] {"520025","520030","520549","520551","520620","520800",
+                "521250","521523","521560","521760","521975","522185",
+                "530010"};
 		
 		
 		String[] codigos = new String[] {"ALL"};
@@ -135,24 +167,37 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 		String inputLayer = "ACESSO-POTENCIAL";
 		
 		long time = System.currentTimeMillis();
+/*		
 		Collection<String> classificadores = UnidadeToServicosProcessor.carregarClassificadoresPesquisados();
 		System.out.println("[LOADING DATA] - Classificadores carregados em: " + (System.currentTimeMillis() - time) + " (ms)");
 		
 		time = System.currentTimeMillis();
 		Collection<Estabelecimento> estabelecimentos = AbstractGeoProcessor.carregarEstabelecimentosMetodo(cnesGeoFile);
 		System.out.println("[LOADING DATA] - Estabelecimentos carregados em: " + (System.currentTimeMillis() - time) + " (ms)");
-		
+*/		
 		time = System.currentTimeMillis();
 		Map<String, Setor> setores = AbstractGeoProcessor.carregarSetoresMetodo(censoGeoShapeDir, inputRegiao, ibges);
 		System.out.println("[LOADING DATA] - Setores carregados em: " + (System.currentTimeMillis() - time) + " (ms)");
-		
+/*		
 		time = System.currentTimeMillis();
 		Map<String, Collection<Servico>> servicos = AbstractGeoProcessor.carregarServicosMetodo(cnesServicosFile, ufs, ibges, codigos);
 		System.out.println("[LOADING DATA] - Servicos carregados em: " + (System.currentTimeMillis() - time) + " (ms)");
+*/		
+		Map<String, Setor> setoresRede = new HashMap<String, Setor>();
+		for (Setor setor : setores.values()) {
+			for (String ibge : ibgeRede) {
+				if (setor.ibge6.equalsIgnoreCase(ibge)) {
+					setor.camada = 1;
+					setoresRede.put(setor.id, setor);
+					break;
+				}
+			}
+		}
 		
-		Collection<Collection> particoes = particionar(setores.values(), 1000); 
+/*	
+		Collection<Collection> particoes = particionar(setoresRede.values(), 1000); 
 		int particaoIdx = 0;
-		interacoes = setores.size() * classificadores.size();
+		interacoes = setoresRede.size();
 		
 		for (Collection<Setor> particao : particoes) {
 			final int finalParticao = particaoIdx++;
@@ -181,9 +226,13 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 			
 			t.start();
 		}
-		
-		gerarSetoresAsGephiNodes("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede\\setores.csv", setores);
-		gerarUnidadesGephiNodes("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede\\unidades.csv", estabelecimentos);
+*/		
+		//gerarSetoresAsGephiNodes("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede\\setores.csv", setores);
+		gerarSetoresAsGeoMatriz("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede\\setores-matriz-geo.csv", setores, true);
+		gerarSetoresAsGeoMatriz("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede\\setores-matriz-rede-geo.csv", setoresRede, true);
+		gerarSetoresAsGeoMatriz("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede\\setores-matriz.csv", setores, false);
+		gerarSetoresAsGeoMatriz("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede\\setores-matriz-rede.csv", setoresRede, false);
+		//gerarUnidadesGephiNodes("C:\\projetos\\mestrado\\r-projeto\\mestrado-r\\metodo\\rede\\unidades.csv", estabelecimentos);
 		
 		
 		
@@ -243,6 +292,13 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 				
 				String servicoProcurado = classificadorItem.split("[.]")[0];
 				String classificadorProcurado = classificadorItem.split("[.]")[1];
+				String classificadorAlternativo = "";
+				
+				if (classificadorProcurado.split("[|]").length > 1) {
+					classificadorAlternativo = classificadorProcurado.split("[|]")[1];
+					classificadorProcurado = classificadorProcurado.split("[|]")[0];
+				}
+				
 				Collection<Estabelecimento> unidadesSelecionadas = new ArrayList<Estabelecimento>();
 				Servico servicoOferecido = null;
 				
@@ -253,24 +309,35 @@ public class UnidadeToServicosProcessor extends AbstractGeoProcessor {
 				for (Estabelecimento estabelecimento : estabelecimentos) {
 					Collection<Servico> servicosEstabelecimento = servicos.get(estabelecimento.cnes);
 					
-					
+					boolean achou = false;
 					
 					for (Servico servico: servicosEstabelecimento) {
 						
 						if (classificadorProcurado.equalsIgnoreCase("X")) {
 							if (servico.codigo.equalsIgnoreCase(servicoProcurado)) {
 								servicoOferecido = servico;
+								achou = true;
 								break;
 							}
 						} else {
-							if (servico.codigo.equalsIgnoreCase(servicoProcurado) && servico.classe.equalsIgnoreCase(classificadorProcurado)) {
-								servicoOferecido = servico;
-								break;
+							if (classificadorAlternativo.isEmpty()) {
+								if (servico.codigo.equalsIgnoreCase(servicoProcurado) && servico.classe.equalsIgnoreCase(classificadorProcurado)) {
+									servicoOferecido = servico;
+									achou = true;
+									break;
+								}
+							} else {
+								if (servico.codigo.equalsIgnoreCase(servicoProcurado) && (servico.classe.equalsIgnoreCase(classificadorProcurado)||(servico.classe.equalsIgnoreCase(classificadorAlternativo)))) {
+									servicoOferecido = servico;
+									achou = true;
+									break;
+								}
 							}
+							
 						}
 					}
 					
-					if (servicoOferecido != null) {
+					if (achou) {
 //						System.out.println("[Relacionamento] - SERVICO ENCONTRADO: "+ servicoProcurado +"."+classificadorProcurado + " no CNES: "+estabelecimento.cnes + " DESCRICAO: "+estabelecimento.descricao + " SERVICOS: "+estabelecimento.servicos);
 						unidadesSelecionadas.add(estabelecimento);
 					}
