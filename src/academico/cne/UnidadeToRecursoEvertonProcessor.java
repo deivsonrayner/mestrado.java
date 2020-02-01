@@ -20,7 +20,7 @@ import com.jillesvangurp.geo.GeoGeometry;
  *
  */
 
-public class UnidadeToRecursoProcessor extends AbstractGeoProcessor {
+public class UnidadeToRecursoEvertonProcessor extends AbstractGeoProcessor {
 
 	public static Collection<Relacionamento> relacionamentos = new ArrayList<Relacionamento>();
 	

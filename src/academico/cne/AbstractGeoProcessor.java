@@ -44,10 +44,10 @@ public class AbstractGeoProcessor {
 			
 			
 			if (processar) {
-				//System.out.println("Processando Diretorio: " + subDir.getName());
-				//System.out.println("=================================================================");
+				System.out.println("Processando Diretorio: " + subDir.getName());
+				System.out.println("=================================================================");
 				for (File file : subDir.listFiles()) {
-					//System.out.println("Avaliando Arquivo: " + file.getName());
+					System.out.println("Avaliando Arquivo: " + file.getName());
 	
 					FileInputStream fileInput = new FileInputStream(file);
 					byte[] content = new byte[(int) file.length()];
