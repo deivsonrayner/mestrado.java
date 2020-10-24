@@ -187,7 +187,7 @@ public class AbstractGeoProcessor {
 		
 	}
 	
-	public static void carregarEquipamentos(String dirObjetos, String uf, String ibge, String[] codigos) throws NumberFormatException, IOException {
+	public static void carregarEquipamentos(String dirObjetos, String[] ufs, String[] ibges, String[] codigos) throws NumberFormatException, IOException {
 		File file = new File(dirObjetos);
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		String line = null;
@@ -203,16 +203,69 @@ public class AbstractGeoProcessor {
 				continue;
 			}
 			
-			if (uf != null) {
-				if (!lineSplit[29].equalsIgnoreCase(uf)) {
-					continue;
+			Equipamento equipamento = new Equipamento();
+			equipamento.cnes = lineSplit[1];
+			equipamento.codigo = lineSplit[22];
+			equipamento.tipo = lineSplit[21];
+			equipamento.uf = lineSplit[29];
+			equipamento.indDispSUS = lineSplit[25].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[25]);
+			equipamento.intNDispSUS = lineSplit[26].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[26]);
+			equipamento.qtdEmUso = lineSplit[24].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[24]);
+			equipamento.qtdExistente = lineSplit[23].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[23]);
+
+			boolean processar = false;
+			
+			if (ufs == null || ufs.length == 0 || ufs[0].equalsIgnoreCase("ALL")) {
+				if (ibges == null || ibges.length == 0) {
+					processar = true;
+				} else {
+					for (String ibge : ibges) {
+						if (lineSplit[2].startsWith(ibge) || ibge.equalsIgnoreCase("ALL")) {
+							processar = true;
+							break;
+						} else {
+							processar = false;
+						}
+					}
+				}
+			} else {
+				for (String uf : ufs) {
+					if (lineSplit[29].equalsIgnoreCase(uf)) {
+						processar = true;
+						break;
+					}
 				}
 			}
-			
-			if (ibge != null) {
-				if (!ibge.equalsIgnoreCase(lineSplit[2])) {
-					continue;
+			if (processar) {
+				for (String codigo : codigos) {
+					if (equipamento.codigo.equalsIgnoreCase(codigo) || codigo.equalsIgnoreCase("ALL")) {
+						equipamentos.add(equipamento);
+						System.out.println("[LOADING...] - CNES: "+ equipamento.cnes + " UF: "+ equipamento.uf + " CODIGO: "+equipamento.codigo);
+						continue;
+					}
 				}
+			} else {
+				System.out.println("[IGNORING...] - CNES: "+ equipamento.cnes + " UF: "+ equipamento.uf + " CODIGO: "+equipamento.codigo);
+			}			
+		}
+	}
+	
+	public static Map<String, Collection<Equipamento>> carregarEquipamentosMetodo(String dirObjetos, String[] ufs, String[] ibges, String[] codigos) throws NumberFormatException, IOException {
+		File file = new File(dirObjetos);
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		String line = null;
+		boolean firstLine = true;
+		Map<String, Collection<Equipamento>> equipamentos = new HashMap<String, Collection<Equipamento>>();
+		
+		while ((line = reader.readLine()) != null) {
+			if (firstLine) {
+				firstLine = !firstLine;
+				continue;
+			}
+			
+			String[] lineSplit = line.split(",");
+			if (lineSplit[1].equalsIgnoreCase("NA")) {
+				continue;
 			}
 			
 			Equipamento equipamento = new Equipamento();
@@ -225,31 +278,47 @@ public class AbstractGeoProcessor {
 			equipamento.qtdEmUso = lineSplit[24].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[24]);
 			equipamento.qtdExistente = lineSplit[23].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[23]);
 
-			if (uf != null) {
-				if (!lineSplit[29].equalsIgnoreCase(uf)) {
-					//System.out.println("[IGNORING...] - CNES: "+ equipamento.cnes + " UF: "+ equipamento.uf + " CODIGO: "+equipamento.codigo);
-					continue;
+			boolean processar = false;
+			
+			if (ufs == null || ufs.length == 0 || ufs[0].equalsIgnoreCase("ALL")) {
+				if (ibges == null || ibges.length == 0) {
+					processar = true;
+				} else {
+					for (String ibge : ibges) {
+						if (lineSplit[2].startsWith(ibge) || ibge.equalsIgnoreCase("ALL")) {
+							processar = true;
+							break;
+						} else {
+							processar = false;
+						}
+					}
+				}
+			} else {
+				for (String uf : ufs) {
+					if (lineSplit[29].equalsIgnoreCase(uf)) {
+						processar = true;
+						break;
+					}
 				}
 			}
-			
-			if (ibge != null) {
-				if (!ibge.equalsIgnoreCase(lineSplit[2])) {
-					//System.out.println("[IGNORING...] - CNES: "+ equipamento.cnes + " IBGE: "+ lineSplit[2] + " CODIGO: "+equipamento.codigo);
-					continue;
+			if (processar) {
+				for (String codigo : codigos) {
+					if (equipamento.codigo.equalsIgnoreCase(codigo) || codigo.equalsIgnoreCase("ALL")) {
+						
+						if (!equipamentos.containsKey(equipamento.cnes)) {
+							equipamentos.put(equipamento.cnes, new ArrayList<Equipamento>());
+						}
+						equipamentos.get(equipamento.cnes).add(equipamento);
+						System.out.println("[LOADING...] - CNES: "+ equipamento.cnes + " UF: "+ equipamento.uf + " CODIGO: "+equipamento.codigo);
+					}
 				}
-			}
-			
-			for (String codigo : codigos) {
-				if (equipamento.codigo.equalsIgnoreCase(codigo)) {
-					equipamentos.add(equipamento);
-					System.out.println("[LOADING...] - CNES: "+ equipamento.cnes + " UF: "+ equipamento.uf + " CODIGO: "+equipamento.codigo);
-					continue;
-				}
-			}
-	
-			//System.out.println("[IGNORING...] - CNES: "+ equipamento.cnes + " UF: "+ equipamento.uf + " CODIGO: "+equipamento.codigo);
-			
+			} else {
+				//System.out.println("[IGNORING...] - CNES: "+ equipamento.cnes + " UF: "+ equipamento.uf + " CODIGO: "+equipamento.codigo);
+			}			
 		}
+		reader.close();
+		System.out.println("Returning "+equipamentos.size()+" Estabelecimentos com equipamentos");
+		return equipamentos;
 	}
 	
 	public static Map<String, Collection<Servico>> carregarServicosMetodo(String dirObjetos, String[] ufs, String[] ibges, String[] codigos) throws NumberFormatException, IOException {
@@ -505,7 +574,7 @@ public class AbstractGeoProcessor {
 				estabelecimento.cnes = lineSplit[1];
 				estabelecimento.id = lineSplit[1];
 				estabelecimento.nivDependencia = lineSplit[3].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[3]);
-				estabelecimento.vincSus = lineSplit[4].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[3]);
+				estabelecimento.vincSus = lineSplit[4].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[4]);
 				estabelecimento.tpGestao = lineSplit[5];
 				estabelecimento.atividade = lineSplit[6].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[6]);
 				estabelecimento.clientel = lineSplit[7].equalsIgnoreCase("NA")?-1:Integer.parseInt(lineSplit[7]);

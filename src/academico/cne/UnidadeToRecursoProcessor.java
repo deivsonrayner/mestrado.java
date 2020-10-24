@@ -20,7 +20,7 @@ import com.jillesvangurp.geo.GeoGeometry;
  *
  */
 
-public class UnidadeToRecursoEvertonProcessor extends AbstractGeoProcessor {
+public class UnidadeToRecursoProcessor extends AbstractGeoProcessor {
 
 	public static Collection<Relacionamento> relacionamentos = new ArrayList<Relacionamento>();
 	
@@ -62,7 +62,7 @@ public class UnidadeToRecursoEvertonProcessor extends AbstractGeoProcessor {
 		carregarEstabelecimentosCNES(origemUnidades, inputRegiao, null);
 
 		if (codEquipamentos.length > 0)
-			carregarEquipamentos(origemRecurso + "CNE-EQ-MG-12-17.csv", inputRegiao, null, codEquipamentos);
+			//carregarEquipamentos(origemRecurso + "CNE-EQ-MG-12-17.csv", inputRegiao, null, codEquipamentos);
 
 		if (codServicos.length > 0)
 			carregarServicos(origemRecurso + "CNE-SR-MG-12-17.csv", inputRegiao, null, codServicos);

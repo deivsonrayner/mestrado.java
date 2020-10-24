@@ -35,10 +35,10 @@ public class PreparacaoST_Geolocalizacao {
 			ParserConfigurationException, InterruptedException, XPathExpressionException {
 
 		long start = System.currentTimeMillis();
-		String cne_principal = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-FILTRADO.csv";
-		//String cne_principal = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-12-17-everton.csv";
-		String target = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-FILTRADO-ONLINE-GEO.csv";
-		//String target = "C:\\projetos\\mestrado\\dados\\final\\CNES-MG-12-17-GEO-Everton-.csv";
+		//String cne_principal = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-FILTRADO.csv";
+		String cne_principal = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-12-19-COV19.csv";
+		//String target = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-FILTRADO-ONLINE-GEO.csv";
+		String target = "C:\\projetos\\mestrado\\dados\\final\\CNES-ST-12-19-GEO-COV19.csv";
 		String line = null;
 		String splitBy = ",";
 		int skip = 0;
